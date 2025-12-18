@@ -1,0 +1,30 @@
+# Foundry
+out/
+cache/
+broadcast/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Node (if using hardhat or other tools)
+node_modules/
+dist/
+build/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class

@@ -1,0 +1,4 @@
+[profile.test]
+src = "../src"
+out = "../out"
+libs = ["../lib"]
