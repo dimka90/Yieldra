@@ -232,7 +232,7 @@ This implementation plan breaks down the Yieldra yield optimization vault into d
   - Add decision outcome tracking
   - _Requirements: 10.1, 10.2, 10.5_
 
-- [x] 20. Implement AI Agent - ProposalExecutor component
+- [ ] 20. Implement AI Agent - ProposalExecutor component
   - Create ProposalExecutor class
   - Implement vault rebalance function calling
   - Implement transaction failure handling (retry up to 3 times)
