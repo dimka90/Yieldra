@@ -48,24 +48,7 @@ interface IYieldraVault {
      */
     function totalAssets() external view returns (uint256);
 
-    /**
-     * @notice Get current share price in USDC
-     * @return Share price (USDC per share, scaled by 1e18)
-     */
-    function sharePrice() external view returns (uint256);
 
-    /**
-     * @notice Get user's vault share balance
-     * @param user User address
-     * @return User's share balance
-     */
-    function userBalance(address user) external view returns (uint256);
-
-    /**
-     * @notice Get current allocation across protocols
-     * @return Array of allocation percentages [ondo%, ethena%, aave%]
-     */
-    function currentAllocation() external view returns (uint256[] memory);
 
     /**
      * @notice Get user's USDC value (shares × share price)

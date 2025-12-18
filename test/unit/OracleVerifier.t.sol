@@ -118,9 +118,12 @@ contract OracleVerifierTest is Test {
      */
     function test_PriceFresh_Stale() public {
         uint256 ethPrice = 2000e8;
-        uint256 staleTimestamp = block.timestamp - 61 seconds;
-
+        // Set price to 61 seconds ago
+        uint256 staleTimestamp = 1;
         oracle.setMockPriceWithTimestamp(ETH_USD_FEED, ethPrice, staleTimestamp);
+
+        // Warp time forward to make it stale
+        vm.warp(block.timestamp + 62 seconds);
 
         bool fresh = oracle.isPriceFresh(ETH_USD_FEED);
         assertFalse(fresh, "Price should be stale");
@@ -131,7 +134,7 @@ contract OracleVerifierTest is Test {
      */
     function test_PriceFresh_AtThreshold() public {
         uint256 ethPrice = 2000e8;
-        uint256 thresholdTimestamp = block.timestamp - 60 seconds;
+        uint256 thresholdTimestamp = block.timestamp > 60 seconds ? block.timestamp - 60 seconds : 1;
 
         oracle.setMockPriceWithTimestamp(ETH_USD_FEED, ethPrice, thresholdTimestamp);
 

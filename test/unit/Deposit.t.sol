@@ -3,9 +3,10 @@ pragma solidity 0.8.20;
 
 import {Test} from "forge-std/Test.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {ERC20Mock} from "@openzeppelin/contracts/mocks/ERC20Mock.sol";
 import {YieldraVault} from "../../src/contracts/YieldraVault.sol";
 import {ProtocolAdapterMock} from "../mocks/ProtocolAdapterMock.sol";
+import {ERC20Mock} from "../mocks/ERC20Mock.sol";
+import {IProtocolAdapter} from "../../src/interfaces/IProtocolAdapter.sol";
 
 /**
  * @title DepositTest

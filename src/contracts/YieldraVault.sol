@@ -3,7 +3,7 @@ pragma solidity 0.8.20;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {IYieldraVault} from "../interfaces/IYieldraVault.sol";
 import {IProtocolAdapter} from "../interfaces/IProtocolAdapter.sol";
@@ -16,6 +16,19 @@ import {IOracleVerifier} from "../interfaces/IOracleVerifier.sol";
  */
 contract YieldraVault is IYieldraVault, ReentrancyGuard, Ownable {
     using SafeERC20 for IERC20;
+
+    // ============ Constructor ============
+
+    constructor(address _usdc) Ownable(msg.sender) {
+        require(_usdc != address(0), "Invalid USDC address");
+        usdc = IERC20(_usdc);
+        
+        // Initialize allocation to 33% each
+        currentAllocation = new uint256[](3);
+        currentAllocation[0] = 33 * PERCENTAGE_PRECISION + 33; // 33.33%
+        currentAllocation[1] = 33 * PERCENTAGE_PRECISION + 33; // 33.33%
+        currentAllocation[2] = 33 * PERCENTAGE_PRECISION + 34; // 33.34%
+    }
 
     // ============ Constants ============
 
@@ -58,19 +71,6 @@ contract YieldraVault is IYieldraVault, ReentrancyGuard, Ownable {
     // ============ Events ============
 
     event AllocationUpdated(uint256[] newAllocation, uint256 timestamp);
-
-    // ============ Constructor ============
-
-    constructor(address _usdc) {
-        require(_usdc != address(0), "Invalid USDC address");
-        usdc = IERC20(_usdc);
-        
-        // Initialize allocation to 33% each
-        currentAllocation = new uint256[](3);
-        currentAllocation[0] = 33 * PERCENTAGE_PRECISION + 33; // 33.33%
-        currentAllocation[1] = 33 * PERCENTAGE_PRECISION + 33; // 33.33%
-        currentAllocation[2] = 33 * PERCENTAGE_PRECISION + 34; // 33.34%
-    }
 
     // ============ Setup ============
 
@@ -221,7 +221,7 @@ contract YieldraVault is IYieldraVault, ReentrancyGuard, Ownable {
     }
 
     /**
-     * @notice Get current share price in USDC
+     * @notice Get current share price in USDC (alias)
      * @return Share price (USDC per share, scaled by 1e18)
      */
     function getSharePrice() external view returns (uint256) {
@@ -230,7 +230,7 @@ contract YieldraVault is IYieldraVault, ReentrancyGuard, Ownable {
     }
 
     /**
-     * @notice Get user's vault share balance
+     * @notice Get user's vault share balance (alias)
      * @param user User address
      * @return User's share balance
      */
@@ -239,7 +239,7 @@ contract YieldraVault is IYieldraVault, ReentrancyGuard, Ownable {
     }
 
     /**
-     * @notice Get current allocation across protocols
+     * @notice Get current allocation across protocols (alias)
      * @return Array of allocation percentages [ondo%, ethena%, aave%]
      */
     function getCurrentAllocation() external view returns (uint256[] memory) {
@@ -321,7 +321,7 @@ contract YieldraVault is IYieldraVault, ReentrancyGuard, Ownable {
         for (uint256 i = 0; i < 3; i++) {
             uint256 allocationAmount = (amount * currentAllocation[i]) / TOTAL_ALLOCATION;
             if (allocationAmount > 0) {
-                usdc.safeApprove(address(adapters[i]), allocationAmount);
+                usdc.forceApprove(address(adapters[i]), allocationAmount);
                 adapters[i].deposit(allocationAmount);
             }
         }
@@ -411,7 +411,7 @@ contract YieldraVault is IYieldraVault, ReentrancyGuard, Ownable {
             uint256 currentValue = adapters[i].balance();
             if (currentValue < targetValue) {
                 uint256 toEnter = targetValue - currentValue;
-                usdc.safeApprove(address(adapters[i]), toEnter);
+                usdc.forceApprove(address(adapters[i]), toEnter);
                 adapters[i].deposit(toEnter);
             }
         }
