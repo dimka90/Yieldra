@@ -98,7 +98,7 @@ This implementation plan breaks down the Yieldra yield optimization vault into d
   - **Property 3: Volatility Gate Protection**
   - **Validates: Requirements 3.3**
 
-- [ ] 9. Implement rebalancing proposal validation
+- [x] 9. Implement rebalancing proposal validation
   - Create rebalance function that accepts target allocation array
   - Validate allocation constraints (10%-60% per protocol)
   - Validate allocation array length (must be 3)
@@ -110,7 +110,7 @@ This implementation plan breaks down the Yieldra yield optimization vault into d
   - **Property 2: Allocation Constraint Enforcement**
   - **Validates: Requirements 2.4**
 
-- [ ] 10. Implement oracle verification in rebalancing
+- [x] 10. Implement oracle verification in rebalancing
   - Integrate OracleVerifier into rebalance function
   - Read Pyth prices before rebalancing
   - Calculate volatility for ETH, BTC, MNT
@@ -122,7 +122,7 @@ This implementation plan breaks down the Yieldra yield optimization vault into d
   - **Property 3: Volatility Gate Protection**
   - **Validates: Requirements 3.3, 3.5**
 
-- [ ] 11. Implement rebalancing execution logic
+- [x] 11. Implement rebalancing execution logic
   - Calculate current allocation percentages
   - Identify over-allocated and under-allocated protocols
   - Exit positions from over-allocated protocols

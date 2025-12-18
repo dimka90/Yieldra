@@ -7,6 +7,7 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {IYieldraVault} from "../interfaces/IYieldraVault.sol";
 import {IProtocolAdapter} from "../interfaces/IProtocolAdapter.sol";
+import {IOracleVerifier} from "../interfaces/IOracleVerifier.sol";
 
 /**
  * @title YieldraVault
@@ -28,6 +29,7 @@ contract YieldraVault is IYieldraVault, ReentrancyGuard, Ownable {
     // ============ State Variables ============
 
     IERC20 public immutable usdc;
+    IOracleVerifier public oracleVerifier;
 
     // Vault state
     uint256 public totalAssets; // Total USDC value in vault
@@ -47,6 +49,11 @@ contract YieldraVault is IYieldraVault, ReentrancyGuard, Ownable {
 
     // User deposit tracking for yield calculation
     mapping(address => uint256) public userInitialDeposit;
+
+    // Oracle price feeds
+    bytes32 public ethUsdFeed;
+    bytes32 public btcUsdFeed;
+    bytes32 public mntUsdFeed;
 
     // ============ Events ============
 
@@ -79,6 +86,27 @@ contract YieldraVault is IYieldraVault, ReentrancyGuard, Ownable {
             require(address(_adapters[i]) != address(0), "Invalid adapter");
             adapters.push(_adapters[i]);
         }
+    }
+
+    /**
+     * @notice Set oracle verifier
+     * @param _oracleVerifier Oracle verifier contract address
+     */
+    function setOracleVerifier(address _oracleVerifier) external onlyOwner {
+        require(_oracleVerifier != address(0), "Invalid oracle verifier");
+        oracleVerifier = IOracleVerifier(_oracleVerifier);
+    }
+
+    /**
+     * @notice Set oracle price feeds
+     * @param _ethUsdFeed ETH/USD price feed ID
+     * @param _btcUsdFeed BTC/USD price feed ID
+     * @param _mntUsdFeed MNT/USD price feed ID
+     */
+    function setOraclePriceFeeds(bytes32 _ethUsdFeed, bytes32 _btcUsdFeed, bytes32 _mntUsdFeed) external onlyOwner {
+        ethUsdFeed = _ethUsdFeed;
+        btcUsdFeed = _btcUsdFeed;
+        mntUsdFeed = _mntUsdFeed;
     }
 
     // ============ Deposit ============
@@ -155,9 +183,13 @@ contract YieldraVault is IYieldraVault, ReentrancyGuard, Ownable {
     function rebalance(uint256[] calldata allocation) external onlyOwner {
         require(allocation.length == 3, "Invalid allocation array length");
         require(adapters.length == 3, "Adapters not initialized");
+        require(address(oracleVerifier) != address(0), "Oracle verifier not set");
 
         // Validate allocation constraints
         _validateAllocation(allocation);
+
+        // Verify oracle conditions
+        _verifyOracleConditions();
 
         // Store previous allocation
         uint256[] memory previousAllocation = currentAllocation;
@@ -328,6 +360,24 @@ contract YieldraVault is IYieldraVault, ReentrancyGuard, Ownable {
         }
         
         require(total == TOTAL_ALLOCATION, "Allocation must sum to 100%");
+    }
+
+    /**
+     * @notice Verify oracle conditions for rebalancing
+     */
+    function _verifyOracleConditions() internal view {
+        // Check price freshness
+        require(oracleVerifier.isPriceFresh(ethUsdFeed), "ETH price is stale");
+        require(oracleVerifier.isPriceFresh(btcUsdFeed), "BTC price is stale");
+        require(oracleVerifier.isPriceFresh(mntUsdFeed), "MNT price is stale");
+
+        // Check volatility
+        uint256[] memory volatilities = new uint256[](3);
+        volatilities[0] = oracleVerifier.getVolatility(ethUsdFeed);
+        volatilities[1] = oracleVerifier.getVolatility(btcUsdFeed);
+        volatilities[2] = oracleVerifier.getVolatility(mntUsdFeed);
+
+        require(oracleVerifier.isVolatilityAcceptable(volatilities), "Market volatility too high");
     }
 
     /**
