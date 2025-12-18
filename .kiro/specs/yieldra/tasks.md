@@ -139,7 +139,7 @@ This implementation plan breaks down the Yieldra yield optimization vault into d
   - **Property 4: Fund Conservation During Rebalancing**
   - **Validates: Requirements 4.4**
 
-- [ ] 12. Implement withdrawal functionality
+- [x] 12. Implement withdrawal functionality
   - Create withdraw function that accepts share amount
   - Calculate USDC value (shares × sharePrice)
   - Include user's proportional share of accrued yield
@@ -159,7 +159,7 @@ This implementation plan breaks down the Yieldra yield optimization vault into d
   - Test state inconsistency detection
   - _Requirements: 5.1_
 
-- [ ] 13. Implement yield tracking and reporting
+- [x] 13. Implement yield tracking and reporting
   - Create functions to query current share price
   - Implement yield calculation (current_value - original_deposit)
   - Create historical allocation tracking
@@ -175,7 +175,7 @@ This implementation plan breaks down the Yieldra yield optimization vault into d
   - **Property 6: Share Price Monotonicity**
   - **Validates: Requirements 6.3**
 
-- [ ] 14. Implement state consistency and atomicity
+- [x] 14. Implement state consistency and atomicity
   - Ensure AUM and share price update atomically
   - Implement consistency checks for user balances
   - Verify total shares equals sum of user shares
@@ -187,7 +187,7 @@ This implementation plan breaks down the Yieldra yield optimization vault into d
   - **Property 9: User Share Balance Consistency**
   - **Validates: Requirements 8.1, 8.2**
 
-- [ ] 15. Implement comprehensive error handling
+- [x] 15. Implement comprehensive error handling
   - Add try-catch for all protocol interactions
   - Implement graceful failure modes
   - Add error event emission for monitoring
