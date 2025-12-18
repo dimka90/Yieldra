@@ -82,7 +82,7 @@ This implementation plan breaks down the Yieldra yield optimization vault into d
   - **Property 4: Fund Conservation During Rebalancing**
   - **Validates: Requirements 7.1, 7.3**
 
-- [ ] 8. Implement Oracle Verifier for Pyth price feeds
+- [x] 8. Implement Oracle Verifier for Pyth price feeds
   - Create OracleVerifier contract
   - Implement getPrice function (read ETH/USD, BTC/USD, MNT/USD from Pyth)
   - Implement price freshness check (< 60 seconds)
