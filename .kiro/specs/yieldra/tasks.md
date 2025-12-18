@@ -26,7 +26,7 @@ This implementation plan breaks down the Yieldra yield optimization vault into d
   - **Property 6: Share Price Monotonicity**
   - **Validates: Requirements 6.2**
 
-- [ ] 3. Implement USDC deposit functionality
+- [x] 3. Implement USDC deposit functionality
   - Create deposit function that accepts USDC amount
   - Implement share minting logic (shares = amount / sharePrice)
   - Add USDC transfer from user to vault
