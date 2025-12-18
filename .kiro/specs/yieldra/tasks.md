@@ -48,13 +48,13 @@ This implementation plan breaks down the Yieldra yield optimization vault into d
   - Test approval failure handling
   - _Requirements: 1.4_
 
-- [ ] 4. Implement protocol adapter interfaces and base classes
+- [x] 4. Implement protocol adapter interfaces and base classes
   - Create IProtocolAdapter interface with deposit, withdraw, balance, getAPY
   - Create abstract ProtocolAdapter base class
   - Implement error handling for protocol interactions
   - _Requirements: 7.1, 7.2, 7.3_
 
-- [ ] 5. Implement Ondo Finance adapter (USDY)
+- [x] 5. Implement Ondo Finance adapter (USDY)
   - Create OndoAdapter contract inheriting from ProtocolAdapter
   - Implement deposit function (USDC → USDY)
   - Implement withdraw function (USDY → USDC)
@@ -62,7 +62,7 @@ This implementation plan breaks down the Yieldra yield optimization vault into d
   - Implement getAPY function (read from Ondo)
   - _Requirements: 7.1, 7.2, 7.3, 7.5_
 
-- [ ] 6. Implement Ethena adapter (USDe)
+- [x] 6. Implement Ethena adapter (USDe)
   - Create EthenaAdapter contract inheriting from ProtocolAdapter
   - Implement deposit function (USDC → USDe)
   - Implement withdraw function (USDe → USDC)
@@ -70,7 +70,7 @@ This implementation plan breaks down the Yieldra yield optimization vault into d
   - Implement getAPY function (read from Ethena)
   - _Requirements: 7.1, 7.2, 7.3, 7.5_
 
-- [ ] 7. Implement Aave V3 adapter (aUSDC)
+- [x] 7. Implement Aave V3 adapter (aUSDC)
   - Create AaveAdapter contract inheriting from ProtocolAdapter
   - Implement deposit function (USDC → aUSDC)
   - Implement withdraw function (aUSDC → USDC)
