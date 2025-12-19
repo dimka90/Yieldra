@@ -42,6 +42,14 @@ export const fetchMetricsAction: Action = {
     try {
       const metricsService = new MetricsService();
 
+      // Show that we're fetching
+      let fetchingText = '🔄 Fetching live protocol metrics from DeFi Llama...\n';
+      fetchingText += '📊 Calling Ondo Finance API...\n';
+      fetchingText += '📊 Calling Ethena API...\n';
+      fetchingText += '📊 Calling Aave V3 API...\n';
+      fetchingText += '💰 Fetching market prices from CoinGecko...\n';
+      fetchingText += '📈 Calculating market volatility...\n\n';
+
       // Fetch all metrics in parallel
       const [metrics, prices, volatility] = await Promise.all([
         metricsService.getAllMetrics(),
@@ -53,40 +61,44 @@ export const fetchMetricsAction: Action = {
       const avgApy =
         metrics.reduce((sum, m) => sum + m.apy, 0) / metrics.length;
 
-      // Format response
-      const metricsText = `
-Real Protocol Metrics (Live Data):
+      // Format response with real data
+      const metricsText = fetchingText + `✅ Successfully fetched live protocol metrics!
 
-Ondo Finance (USDY):
-  APY: ${(metrics[0].apy / 100).toFixed(2)}%
-  Utilization: ${metrics[0].utilization}%
-  Risk Score: ${metrics[0].riskScore}/100
+📊 PROTOCOL METRICS (Real-time from DeFi Llama):
 
-Ethena (USDe):
-  APY: ${(metrics[1].apy / 100).toFixed(2)}%
-  Utilization: ${metrics[1].utilization}%
-  Risk Score: ${metrics[1].riskScore}/100
+🔹 Ondo Finance (USDY):
+   • APY: ${(metrics[0].apy / 100).toFixed(2)}%
+   • Utilization: ${metrics[0].utilization}%
+   • TVL: $${(metrics[0].liquidity / 1e9).toFixed(2)}B
+   • Risk Score: ${metrics[0].riskScore}/100
 
-Aave V3 (aUSDC):
-  APY: ${(metrics[2].apy / 100).toFixed(2)}%
-  Utilization: ${metrics[2].utilization}%
-  Risk Score: ${metrics[2].riskScore}/100
+🔹 Ethena (USDe):
+   • APY: ${(metrics[1].apy / 100).toFixed(2)}%
+   • Utilization: ${metrics[1].utilization}%
+   • TVL: $${(metrics[1].liquidity / 1e9).toFixed(2)}B
+   • Risk Score: ${metrics[1].riskScore}/100
 
-Market Data:
-  ETH Price: $${prices.eth.toFixed(2)}
-  BTC Price: $${prices.btc.toFixed(2)}
-  MNT Price: $${prices.mnt.toFixed(4)}
+🔹 Aave V3 (aUSDC):
+   • APY: ${(metrics[2].apy / 100).toFixed(2)}%
+   • Utilization: ${metrics[2].utilization}%
+   • TVL: $${(metrics[2].liquidity / 1e9).toFixed(2)}B
+   • Risk Score: ${metrics[2].riskScore}/100
 
-Market Volatility (24h):
-  ETH: ${(volatility.ethVolatility).toFixed(2)}%
-  BTC: ${(volatility.btcVolatility).toFixed(2)}%
-  MNT: ${(volatility.mntVolatility).toFixed(2)}%
+💰 MARKET DATA (Real-time from CoinGecko):
+   • ETH: $${prices.eth.toFixed(2)} (${volatility.ethVolatility.toFixed(2)}% 24h change)
+   • BTC: $${prices.btc.toFixed(2)} (${volatility.btcVolatility.toFixed(2)}% 24h change)
+   • MNT: $${prices.mnt.toFixed(4)} (${volatility.mntVolatility.toFixed(2)}% 24h change)
 
-Average Weighted APY: ${(avgApy / 100).toFixed(2)}%
-Market Conditions: ${getMarketCondition(volatility)}
+📈 ANALYSIS:
+   • Weighted Average APY: ${(avgApy / 100).toFixed(2)}%
+   • Market Conditions: ${getMarketCondition(volatility)}
+   • Best Yield: ${metrics.reduce((a, b) => a.apy > b.apy ? a : b).protocol.toUpperCase()} (${(Math.max(...metrics.map(m => m.apy)) / 100).toFixed(2)}%)
+   • Lowest Risk: ${metrics.reduce((a, b) => a.riskScore < b.riskScore ? a : b).protocol.toUpperCase()} (${Math.min(...metrics.map(m => m.riskScore))}/100)
 
-Data Source: DeFi Llama + Coingecko (Real-time)
-Last Updated: ${new Date().toISOString()}
+🔗 Data Sources:
+   • Protocol TVL: DeFi Llama API (https://api.llama.fi)
+   • Market Prices: CoinGecko API (https://api.coingecko.com)
+   • Last Updated: ${new Date().toISOString()}
       `;
 
       return {
@@ -98,7 +110,7 @@ Last Updated: ${new Date().toISOString()}
       };
     } catch (error) {
       return {
-        text: `Error fetching metrics: ${error instanceof Error ? error.message : String(error)}`,
+        text: `❌ Error fetching metrics: ${error instanceof Error ? error.message : String(error)}`,
         action: 'FETCH_METRICS',
       };
     }
