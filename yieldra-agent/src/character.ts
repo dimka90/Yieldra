@@ -14,7 +14,6 @@ import { fetchMetricsAction } from './actions/fetchMetrics';
 export const character: Character = {
   name: 'Yieldra',
   username: 'yieldra_agent',
-  actions: [fetchMetricsAction],
   plugins: [
     // Core plugins first
     '@elizaos/plugin-sql',

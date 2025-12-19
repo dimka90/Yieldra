@@ -1,4 +1,4 @@
-import { Action, IAgentRuntime, Memory, State } from '@elizaos/core';
+import { Action, IAgentRuntime, Memory, State, ActionResult } from '@elizaos/core';
 import { MetricsService } from '../services/metricsService';
 
 /**
@@ -35,20 +35,12 @@ export const fetchMetricsAction: Action = {
   ],
   description:
     'Fetch real protocol metrics from DeFi Llama and market data from Coingecko',
-  validate: async (runtime: IAgentRuntime, message: Memory) => {
+  validate: async () => {
     return true;
   },
-  handler: async (runtime: IAgentRuntime, message: Memory, state?: State) => {
+  handler: async (): Promise<ActionResult> => {
     try {
       const metricsService = new MetricsService();
-
-      // Show that we're fetching
-      let fetchingText = '🔄 Fetching live protocol metrics from DeFi Llama...\n';
-      fetchingText += '📊 Calling Ondo Finance API...\n';
-      fetchingText += '📊 Calling Ethena API...\n';
-      fetchingText += '📊 Calling Aave V3 API...\n';
-      fetchingText += '💰 Fetching market prices from CoinGecko...\n';
-      fetchingText += '📈 Calculating market volatility...\n\n';
 
       // Fetch all metrics in parallel
       const [metrics, prices, volatility] = await Promise.all([
@@ -62,26 +54,26 @@ export const fetchMetricsAction: Action = {
         metrics.reduce((sum, m) => sum + m.apy, 0) / metrics.length;
 
       // Format response with real data
-      const metricsText = fetchingText + `✅ Successfully fetched live protocol metrics!
+      const metricsText = `✅ Successfully fetched live protocol metrics!
 
 📊 PROTOCOL METRICS (Real-time from DeFi Llama):
 
 🔹 Ondo Finance (USDY):
    • APY: ${(metrics[0].apy / 100).toFixed(2)}%
    • Utilization: ${metrics[0].utilization}%
-   • TVL: $${(metrics[0].liquidity / 1e9).toFixed(2)}B
+   • TVL: ${(metrics[0].liquidity / 1e9).toFixed(2)}B
    • Risk Score: ${metrics[0].riskScore}/100
 
 🔹 Ethena (USDe):
    • APY: ${(metrics[1].apy / 100).toFixed(2)}%
    • Utilization: ${metrics[1].utilization}%
-   • TVL: $${(metrics[1].liquidity / 1e9).toFixed(2)}B
+   • TVL: ${(metrics[1].liquidity / 1e9).toFixed(2)}B
    • Risk Score: ${metrics[1].riskScore}/100
 
 🔹 Aave V3 (aUSDC):
    • APY: ${(metrics[2].apy / 100).toFixed(2)}%
    • Utilization: ${metrics[2].utilization}%
-   • TVL: $${(metrics[2].liquidity / 1e9).toFixed(2)}B
+   • TVL: ${(metrics[2].liquidity / 1e9).toFixed(2)}B
    • Risk Score: ${metrics[2].riskScore}/100
 
 💰 MARKET DATA (Real-time from CoinGecko):
@@ -98,20 +90,16 @@ export const fetchMetricsAction: Action = {
 🔗 Data Sources:
    • Protocol TVL: DeFi Llama API (https://api.llama.fi)
    • Market Prices: CoinGecko API (https://api.coingecko.com)
-   • Last Updated: ${new Date().toISOString()}
-      `;
+   • Last Updated: ${new Date().toISOString()}`;
 
       return {
+        success: true,
         text: metricsText,
-        action: 'FETCH_METRICS',
-        metrics,
-        prices,
-        volatility,
       };
     } catch (error) {
       return {
+        success: false,
         text: `❌ Error fetching metrics: ${error instanceof Error ? error.message : String(error)}`,
-        action: 'FETCH_METRICS',
       };
     }
   },
@@ -119,13 +107,13 @@ export const fetchMetricsAction: Action = {
   examples: [
     [
       {
-        user: 'user',
+        user: '{{user}}',
         content: {
           text: 'Fetch the latest protocol metrics',
         },
       },
       {
-        user: 'Yieldra',
+        user: '{{agent}}',
         content: {
           text: 'I am fetching real-time protocol metrics from DeFi Llama and market data from Coingecko...',
           action: 'FETCH_METRICS',
