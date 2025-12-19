@@ -22,16 +22,29 @@ class MetricsService {
     }
   }
 
+  extractTVL(data) {
+    if (!data?.tvl) return 0;
+    if (typeof data.tvl === 'number') {
+      return data.tvl;
+    }
+    if (Array.isArray(data.tvl)) {
+      const latest = data.tvl[data.tvl.length - 1];
+      return latest?.totalLiquidityUSD ?? 0;
+    }
+    if (typeof data.tvl === 'object') {
+      return Object.values(data.tvl)
+        .filter(v => typeof v === 'number')
+        .reduce((a, b) => a + b, 0);
+    }
+    return 0;
+  }
+
   async getOndoMetrics() {
     const data = await this.fetchJson(
       `${this.defiLlamaBaseUrl}/protocol/ondo-finance`
     );
 
-    let tvl = 0;
-    if (Array.isArray(data?.tvl) && data.tvl.length > 0) {
-      const latest = data.tvl[data.tvl.length - 1];
-      tvl = Array.isArray(latest) ? latest[1] : latest;
-    }
+    const tvl = this.extractTVL(data);
 
     return {
       protocol: 'ondo',
@@ -48,11 +61,7 @@ class MetricsService {
       `${this.defiLlamaBaseUrl}/protocol/ethena`
     );
 
-    let tvl = 0;
-    if (Array.isArray(data?.tvl) && data.tvl.length > 0) {
-      const latest = data.tvl[data.tvl.length - 1];
-      tvl = Array.isArray(latest) ? latest[1] : latest;
-    }
+    const tvl = this.extractTVL(data);
 
     return {
       protocol: 'ethena',
@@ -69,11 +78,7 @@ class MetricsService {
       `${this.defiLlamaBaseUrl}/protocol/aave`
     );
 
-    let tvl = 0;
-    if (Array.isArray(data?.tvl) && data.tvl.length > 0) {
-      const latest = data.tvl[data.tvl.length - 1];
-      tvl = Array.isArray(latest) ? latest[1] : latest;
-    }
+    const tvl = this.extractTVL(data);
 
     return {
       protocol: 'aave',

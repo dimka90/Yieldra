@@ -1,16 +1,16 @@
 /**
- * Metrics Service
- * ----------------
- * Fetches real DeFi protocol metrics for AI-assisted decision making.
- * All data here is OFF-CHAIN and MUST NOT be used as an on-chain oracle.
+ * MetricsService
+ * --------------
+ * Off-chain metrics provider for AI reasoning ONLY.
+ * Not used for on-chain execution or oracle validation.
  */
 
 export interface ProtocolMetrics {
   protocol: string;
-  apy: number;          // % APY
-  utilization: number;  // 0–100
-  liquidity: number;    // TVL in USD
-  riskScore: number;    // 0–100 (lower = safer)
+  apy: number;           // %
+  utilization: number;   // %
+  liquidity: number;     // USD
+  riskScore: number;     // 0–100 (lower = safer)
   lastUpdated: number;
 }
 
@@ -18,13 +18,15 @@ export class MetricsService {
   private defiLlamaBaseUrl = 'https://api.llama.fi';
   private coingeckoBaseUrl = 'https://api.coingecko.com/api/v3';
 
-  /* --------------------------------------------------
-   * Generic JSON fetch helper
-   * -------------------------------------------------- */
+  constructor() {}
+
+  /* =========================
+     Generic JSON Fetch Helper
+     ========================= */
   private async fetchJson(url: string): Promise<any | null> {
     try {
       const res = await fetch(url, {
-        headers: { accept: 'application/json' },
+        headers: { accept: 'application/json' }
       });
       if (!res.ok) return null;
       return await res.json();
@@ -33,85 +35,107 @@ export class MetricsService {
     }
   }
 
-  /* --------------------------------------------------
-   * Ondo Finance
-   * -------------------------------------------------- */
+  /* =========================
+     TVL Normalization Helper
+     ========================= */
+  private extractTVL(data: any): number {
+    if (!data?.tvl) return 0;
+
+    // Case 1: TVL is a number
+    if (typeof data.tvl === 'number') {
+      return data.tvl;
+    }
+
+    // Case 2: TVL is an array (historical)
+    if (Array.isArray(data.tvl)) {
+      const latest = data.tvl[data.tvl.length - 1];
+      return latest?.totalLiquidityUSD ?? 0;
+    }
+
+    // Case 3: TVL is an object (chain breakdown)
+    if (typeof data.tvl === 'object') {
+      return Object.values(data.tvl)
+        .filter(v => typeof v === 'number')
+        .reduce((a, b) => a + b, 0);
+    }
+
+    return 0;
+  }
+
+  /* =========================
+     Utilization Estimator
+     ========================= */
+  private calculateUtilization(tvl: number): number {
+    if (tvl < 1_000_000) return 40;
+    if (tvl < 10_000_000) return 60;
+    if (tvl < 100_000_000) return 75;
+    return 85;
+  }
+
+  /* =========================
+     Ondo Finance (USDY)
+     ========================= */
   async getOndoMetrics(): Promise<ProtocolMetrics> {
     const data = await this.fetchJson(
       `${this.defiLlamaBaseUrl}/protocol/ondo-finance`
     );
 
-    // Extract latest TVL from array (DeFi Llama returns time-series data)
-    let tvl = 0;
-    if (Array.isArray(data?.tvl) && data.tvl.length > 0) {
-      const latest = data.tvl[data.tvl.length - 1];
-      tvl = Array.isArray(latest) ? latest[1] : latest;
-    }
+    const tvl = this.extractTVL(data);
 
     return {
       protocol: 'ondo',
-      apy: 5.2,               // USDY historical average
+      apy: 5.2,
       utilization: this.calculateUtilization(tvl),
       liquidity: tvl,
-      riskScore: 20,          // RWA-backed
+      riskScore: 20,
       lastUpdated: Date.now(),
     };
   }
 
-  /* --------------------------------------------------
-   * Ethena
-   * -------------------------------------------------- */
+  /* =========================
+     Ethena (USDe)
+     ========================= */
   async getEthenaMetrics(): Promise<ProtocolMetrics> {
     const data = await this.fetchJson(
       `${this.defiLlamaBaseUrl}/protocol/ethena`
     );
 
-    // Extract latest TVL from array (DeFi Llama returns time-series data)
-    let tvl = 0;
-    if (Array.isArray(data?.tvl) && data.tvl.length > 0) {
-      const latest = data.tvl[data.tvl.length - 1];
-      tvl = Array.isArray(latest) ? latest[1] : latest;
-    }
+    const tvl = this.extractTVL(data);
 
     return {
       protocol: 'ethena',
-      apy: 8.5,               // USDe variable yield
+      apy: 8.5,
       utilization: this.calculateUtilization(tvl),
       liquidity: tvl,
-      riskScore: 30,          // Synthetic dollar risk
+      riskScore: 30,
       lastUpdated: Date.now(),
     };
   }
 
-  /* --------------------------------------------------
-   * Aave V3
-   * -------------------------------------------------- */
+  /* =========================
+     Aave V3
+     ========================= */
   async getAaveMetrics(): Promise<ProtocolMetrics> {
     const data = await this.fetchJson(
       `${this.defiLlamaBaseUrl}/protocol/aave`
     );
 
-    // Extract latest TVL from array (DeFi Llama returns time-series data)
-    let tvl = 0;
-    if (Array.isArray(data?.tvl) && data.tvl.length > 0) {
-      const latest = data.tvl[data.tvl.length - 1];
-      tvl = Array.isArray(latest) ? latest[1] : latest;
-    }
+    const tvl = this.extractTVL(data);
 
     return {
       protocol: 'aave',
-      apy: 3.5,               // aUSDC average
+      apy: 3.5,
       utilization: this.calculateUtilization(tvl),
       liquidity: tvl,
-      riskScore: 15,          // Battle-tested
+      riskScore: 15,
       lastUpdated: Date.now(),
     };
   }
 
-  /* --------------------------------------------------
-   * Aggregate protocol metrics
-   * -------------------------------------------------- */
-  async getAllProtocolMetrics(): Promise<ProtocolMetrics[]> {
+  /* =========================
+     Aggregate Metrics
+     ========================= */
+  async getAllMetrics(): Promise<ProtocolMetrics[]> {
     return Promise.all([
       this.getOndoMetrics(),
       this.getEthenaMetrics(),
@@ -119,9 +143,9 @@ export class MetricsService {
     ]);
   }
 
-  /* --------------------------------------------------
-   * Market prices (AI reasoning ONLY)
-   * -------------------------------------------------- */
+  /* =========================
+     Market Prices (AI ONLY)
+     ========================= */
   async getMarketPrices(): Promise<{
     eth: number;
     btc: number;
@@ -138,32 +162,22 @@ export class MetricsService {
     };
   }
 
-  /* --------------------------------------------------
-   * Market volatility proxy (24h % change)
-   * -------------------------------------------------- */
+  /* =========================
+     Market Volatility (AI ONLY)
+     ========================= */
   async getMarketVolatility(): Promise<{
-    eth: number;
-    btc: number;
-    mnt: number;
+    ethVolatility: number;
+    btcVolatility: number;
+    mntVolatility: number;
   }> {
     const data = await this.fetchJson(
       `${this.coingeckoBaseUrl}/simple/price?ids=ethereum,bitcoin,mantle&vs_currencies=usd&include_24hr_change=true`
     );
 
     return {
-      eth: Math.abs(data?.ethereum?.usd_24h_change ?? 0),
-      btc: Math.abs(data?.bitcoin?.usd_24h_change ?? 0),
-      mnt: Math.abs(data?.mantle?.usd_24h_change ?? 0),
+      ethVolatility: Math.abs(data?.ethereum?.usd_24h_change ?? 2.3) * 100,
+      btcVolatility: Math.abs(data?.bitcoin?.usd_24h_change ?? 2.5) * 100,
+      mntVolatility: Math.abs(data?.mantle?.usd_24h_change ?? 1.8) * 100,
     };
-  }
-
-  /* --------------------------------------------------
-   * Utilization heuristic
-   * -------------------------------------------------- */
-  private calculateUtilization(tvl: number): number {
-    if (tvl < 10_000_000) return 40;
-    if (tvl < 100_000_000) return 60;
-    if (tvl < 1_000_000_000) return 75;
-    return 85;
   }
 }
