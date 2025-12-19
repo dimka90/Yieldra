@@ -24,6 +24,9 @@ node_modules/
 dist/
 build/
 
+# ElizaOS runtime artifacts
+.eliza/
+
 # Python
 __pycache__/
 *.py[cod]
