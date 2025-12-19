@@ -84,9 +84,9 @@ export class MetricsService {
 
     return {
       protocol: 'ondo',
-      apy: 5.2,
+      apy: 5.2,  // USDY historical average (APY not in DeFi Llama API)
       utilization: this.calculateUtilization(tvl),
-      liquidity: tvl,
+      liquidity: tvl,  // Real TVL from API
       riskScore: 20,
       lastUpdated: Date.now(),
     };
@@ -104,9 +104,9 @@ export class MetricsService {
 
     return {
       protocol: 'ethena',
-      apy: 8.5,
+      apy: 8.5,  // USDe variable yield (APY not in DeFi Llama API)
       utilization: this.calculateUtilization(tvl),
-      liquidity: tvl,
+      liquidity: tvl,  // Real TVL from API
       riskScore: 30,
       lastUpdated: Date.now(),
     };
@@ -124,9 +124,9 @@ export class MetricsService {
 
     return {
       protocol: 'aave',
-      apy: 3.5,
+      apy: 3.5,  // aUSDC average (APY not in DeFi Llama API)
       utilization: this.calculateUtilization(tvl),
-      liquidity: tvl,
+      liquidity: tvl,  // Real TVL from API
       riskScore: 15,
       lastUpdated: Date.now(),
     };
