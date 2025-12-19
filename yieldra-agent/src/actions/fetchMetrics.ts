@@ -2,6 +2,25 @@ import { Action, IAgentRuntime, Memory, State } from '@elizaos/core';
 import { MetricsService } from '../services/metricsService';
 
 /**
+ * Get market condition based on volatility
+ */
+function getMarketCondition(volatility: {
+  ethVolatility: number;
+  btcVolatility: number;
+  mntVolatility: number;
+}): string {
+  const maxVolatility = Math.max(
+    volatility.ethVolatility,
+    volatility.btcVolatility,
+    volatility.mntVolatility
+  );
+
+  if (maxVolatility < 200) return '✓ Favorable (Low volatility)';
+  if (maxVolatility < 500) return '⚠ Moderate (Medium volatility)';
+  return '✗ Unfavorable (High volatility)';
+}
+
+/**
  * Fetch Real Protocol Metrics Action
  * Fetches actual metrics from DeFi Llama and Coingecko
  */
@@ -21,8 +40,7 @@ export const fetchMetricsAction: Action = {
   },
   handler: async (runtime: IAgentRuntime, message: Memory, state?: State) => {
     try {
-      const rpcUrl = process.env.MANTLE_RPC_URL || 'https://rpc.mantle.xyz';
-      const metricsService = new MetricsService(rpcUrl);
+      const metricsService = new MetricsService();
 
       // Fetch all metrics in parallel
       const [metrics, prices, volatility] = await Promise.all([
@@ -60,12 +78,12 @@ Market Data:
   MNT Price: $${prices.mnt.toFixed(4)}
 
 Market Volatility (24h):
-  ETH: ${(volatility.ethVolatility / 100).toFixed(2)}%
-  BTC: ${(volatility.btcVolatility / 100).toFixed(2)}%
-  MNT: ${(volatility.mntVolatility / 100).toFixed(2)}%
+  ETH: ${(volatility.ethVolatility).toFixed(2)}%
+  BTC: ${(volatility.btcVolatility).toFixed(2)}%
+  MNT: ${(volatility.mntVolatility).toFixed(2)}%
 
 Average Weighted APY: ${(avgApy / 100).toFixed(2)}%
-Market Conditions: ${this.getMarketCondition(volatility)}
+Market Conditions: ${getMarketCondition(volatility)}
 
 Data Source: DeFi Llama + Coingecko (Real-time)
 Last Updated: ${new Date().toISOString()}
@@ -103,20 +121,4 @@ Last Updated: ${new Date().toISOString()}
       },
     ],
   ],
-
-  getMarketCondition(volatility: {
-    ethVolatility: number;
-    btcVolatility: number;
-    mntVolatility: number;
-  }): string {
-    const maxVolatility = Math.max(
-      volatility.ethVolatility,
-      volatility.btcVolatility,
-      volatility.mntVolatility
-    );
-
-    if (maxVolatility < 200) return '✓ Favorable (Low volatility)';
-    if (maxVolatility < 500) return '⚠ Moderate (Medium volatility)';
-    return '✗ Unfavorable (High volatility)';
-  },
 };

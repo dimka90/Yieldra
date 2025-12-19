@@ -1,4 +1,5 @@
 import { type Character } from '@elizaos/core';
+import { fetchMetricsAction } from './actions/fetchMetrics';
 
 /**
  * Represents Yieldra, an AI-powered yield optimization agent for the Mantle Network.
@@ -13,6 +14,7 @@ import { type Character } from '@elizaos/core';
 export const character: Character = {
   name: 'Yieldra',
   username: 'yieldra_agent',
+  actions: [fetchMetricsAction],
   plugins: [
     // Core plugins first
     '@elizaos/plugin-sql',
